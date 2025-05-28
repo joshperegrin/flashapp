@@ -30,6 +30,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.511.0",
     "react-router-dom": "^7.6.1",
     "tailwind-merge": "^3.3.0"
