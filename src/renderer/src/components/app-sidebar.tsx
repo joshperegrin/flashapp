@@ -11,30 +11,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@renderer/components/ui/sidebar"
+import { useNavigate } from "react-router-dom" 
+import { Deck } from '@renderer/types'
 
-const items = [
-  {
-    title: "Deck 1",
-    url: "Deck1",
-  },
-  {
-    title: "Deck 2",
-    url: "Deck2",
-  },
-  {
-    title: "Deck 3",
-    url: "Deck3",
-  },
-  {
-    title: "Deck 4",
-    url: "Deck4",
-  },
-  {
-    title: "Deck 5",
-    url: "Deck5",
-  },
-]
-export function AppSidebar() {
+type AppSidebarProp = {
+  decks: Deck[]
+}
+
+export function AppSidebar({ decks }: AppSidebarProp) {
+  const navigate = useNavigate()
   return (
     <Sidebar collapsible="offcanvas" variant="inset">
       <SidebarContent>
@@ -64,13 +49,11 @@ export function AppSidebar() {
           <SidebarGroupLabel>My Decks</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {decks.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                  <SidebarMenuButton onClick={() => navigate(item.url)}>
                       <NotepadText />
                       <span>{item.title}</span>
-                    </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
