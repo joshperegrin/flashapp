@@ -1,29 +1,30 @@
 import { SidebarInset, SidebarProvider } from "@renderer/components/ui/sidebar"
 import { AppSidebar } from "@renderer/components/app-sidebar"
 import { HashRouter, Routes, Route } from "react-router-dom"
-import { useState } from 'react';
-import { Deck } from '@renderer/types'
+import { useEffect } from 'react';
 import DeckPage from '@renderer/components/deck-page'
+import * as DeckStore from '@renderer/state'
+import * as Jotai from 'jotai';
 
 function App(): React.JSX.Element {
-  const [decks, _] = useState<Deck[]>([
-    { title: "Deck 1", url: "/deck/Deck1" },
-    { title: "Deck 2", url: "/deck/Deck2" },
-    { title: "Deck 3", url: "/deck/Deck3" },
-    { title: "Deck 4", url: "/deck/Deck4" },
-    { title: "Deck 5", url: "/deck/Deck5" },
-  ]);
+  const [decks, ] = Jotai.useAtom(DeckStore.decksAtom)
+  const [, setSelectedDeck] = Jotai.useAtom(DeckStore.selectedDeckIdAtom)
+  
+  useEffect(() => {
+    const firstDeck = decks.at(0)?.id
+    if(typeof firstDeck !== 'undefined') setSelectedDeck(firstDeck)
+  }, [])
   
   return (
     <>
       <HashRouter>
         <SidebarProvider>
-          <AppSidebar decks={decks}/>
+          <AppSidebar/>
           <SidebarInset>
             <main>
               <Routes>
                 <Route path="/" element={<p className="text-blue-600 dark:text-sky-400"> Hello World!</p>} />
-                <Route path="/deck/:deckname" element={<DeckPage/>} />
+                <Route path="/deck/:deckid" element={<DeckPage/>} />
               </Routes>
             </main>
           </SidebarInset>

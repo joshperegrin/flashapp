@@ -1,6 +1,8 @@
 import * as React from "react"
 import { useState } from "react"
 import { GripVertical, Edit, Star } from 'lucide-react'
+import * as Jotai from 'jotai'
+import * as DeckStore from '@renderer/state'
 
 import { Button } from "@renderer/components/ui/button"
 import {
@@ -10,13 +12,12 @@ import {
 // Import Textarea instead of Input
 import { Textarea } from "@renderer/components/ui/textarea"
 
-export function CardWithForm() {
+export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
   const cardRef = React.useRef<HTMLDivElement>(null)
-  const [string1, setString1] = useState("Project Name")
-  const [string2, setString2] = useState("Mitochondria is the powerhouse of the cell, it also is the mitochondira")
+  const [flashcard, setFlashcard] = Jotai.useAtom(DeckStore.getFlashcardAtomByID(flashcard_id))
   const [isEditing, setIsEditing] = useState(false)
-  const [editString1, setEditString1] = useState(string1)
-  const [editString2, setEditString2] = useState(string2)
+  const [editString1, setEditString1] = useState<string | undefined>(flashcard?.front)
+  const [editString2, setEditString2] = useState<string | undefined>(flashcard?.back)
   const [isStarred, setIsStarred] = useState(false)
   const [focusedField, setFocusedField] = useState<"Front" | "Back" | null>(null)
   const string1Ref = React.useRef<HTMLTextAreaElement>(null)
@@ -24,21 +25,22 @@ export function CardWithForm() {
 
   const handleDoubleClick = (target: "Front" | "Back") => {
     setIsEditing(true)
-    setEditString1(string1)
-    setEditString2(string2)
+    setEditString1(flashcard?.front)
+    setEditString2(flashcard?.back)
     setFocusedField(target)
   }
 
   const handleSave = () => {
-    setString1(editString1)
-    setString2(editString2)
-    setIsEditing(false)
-    setFocusedField(null)
-  }
-  
+    setFlashcard({
+      front: editString1 ?? "",
+      back: editString2 ?? ""
+    });
+    setIsEditing(false);
+    setFocusedField(null);
+  };  
   const handleCancel = () => {
-    setEditString1(string1)
-    setEditString2(string2)
+    setEditString1(flashcard?.front)
+    setEditString2(flashcard?.back)
     setIsEditing(false)
     setFocusedField(null)
   }
@@ -122,8 +124,8 @@ export function CardWithForm() {
               </div>
             ) : (
               <div className="flex items-center gap-2 flex-1">
-                <span className="flex-1 font-medium align" onDoubleClick={() => {handleDoubleClick("Front")}}>{string1}</span>
-                <span className="flex-1 text-gray-600 box-border border-l-2 pl-4" onDoubleClick={() => {handleDoubleClick("Back")}}>{string2}</span>
+                <span className="flex-1 font-medium align" onDoubleClick={() => {handleDoubleClick("Front")}}>{flashcard?.front}</span>
+                <span className="flex-1 text-gray-600 box-border border-l-2 pl-4" onDoubleClick={() => {handleDoubleClick("Back")}}>{flashcard?.back}</span>
               </div>
             )}
           </div>
@@ -136,8 +138,8 @@ export function CardWithForm() {
                 onClick={(e) => {
                   e.stopPropagation()
                   setIsEditing(true)
-                  setEditString1(string1)
-                  setEditString2(string2)
+                  setEditString1(flashcard?.front)
+                  setEditString2(flashcard?.back)
                 }}
                 className="h-8 w-8 p-0 hover:bg-gray-100"
               >

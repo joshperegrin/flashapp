@@ -8,19 +8,17 @@ import { Sparkles, CopyPlus } from "lucide-react";
 import { CardWithForm } from "@renderer/components/flashcards"
 import { SidebarTrigger } from "@renderer/components/ui/sidebar"
 import {Card, CardContent} from "@renderer/components/ui/card"
-function DeckPage() {
-  const [cards, _] = React.useState([
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-    { id: '', front: "Front", back: "Back" },
-  ])
+import * as Jotai from 'jotai'
+import * as DeckStore from '@renderer/state'
 
-  let { deckname } = useParams()
+function DeckPage() {
+  const [, setSelectedDeckID] = Jotai.useAtom(DeckStore.selectedDeckIdAtom)
+  const [selectedDeck, ] = Jotai.useAtom(DeckStore.selectedDeckAtom)
+  let { deckid } = useParams()
+  React.useEffect(() => {
+    setSelectedDeckID(deckid)
+  }, [deckid])
+
   const [isStuck, setIsStuck] = React.useState(false)
   const stickyRef = React.useRef(null)
 
@@ -55,7 +53,7 @@ function DeckPage() {
       >
         <header className="h-12 flex items-center border-b pr-4 pl-2 sm:pr-6 lg:pr-8">
           <SidebarTrigger />
-          <h1 className="text-base font-medium truncate">{deckname}</h1>
+          <h1 className="text-base font-medium truncate">{selectedDeck?.name}</h1>
         </header>
       </div>
 
@@ -86,8 +84,8 @@ function DeckPage() {
             <span className="ml-2">New Card</span>
           </CardContent>
         </Card>
-        {cards.map(() => (
-          <CardWithForm/>
+        {selectedDeck?.flashcards.map((value) => (
+          <CardWithForm flashcard_id={value.id} key={value.id}/>
         ))}
       </div>
     </>

@@ -7,10 +7,12 @@ import {
   CarouselPrevious,
 } from "@renderer/components/ui/carousel"
 import { useState } from "react"
+import * as Jotai from 'jotai'
+import * as DeckStore from '@renderer/state'
 
 export function CarouselSpacing() {
   const [clicked, setClicked] = useState<boolean[]>([false, false, false, false, false])
-
+  const [deck, ] = Jotai.useAtom(DeckStore.selectedDeckAtom)
   const clickEvent = (index: number) => {
     setClicked((prev) =>
       prev.map((val, i) => (i === index ? !val : val))
@@ -52,7 +54,7 @@ export function CarouselSpacing() {
       
       <Carousel className="w-full max-w-full sm:max-w-5xl">
         <CarouselContent className="-ml-1">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {deck?.flashcards.map((flashcard, index) => (
             <CarouselItem onClick={() => {clickEvent(index)}} key={index} className={`pl-1 sm:basis-1/2 md:basis-1/2 lg:basis-1/3 ${clicked[index] ? 'flip-card-flipped' : ''}`}>
               <div className="p-1">
                 <div className="flip-card h-48">
@@ -61,19 +63,17 @@ export function CarouselSpacing() {
                     <div className="flip-card-front">
                       <Card className="h-full">
                         <CardContent className="flex h-full items-center justify-center p-6 rounded-lg">
-                          <span className="text-2xl font-semibold">{index + 1}</span>
+                          <span className="text-xl font-semibold">{flashcard.front}</span>
                         </CardContent>
                       </Card>
                     </div>
                     
                     {/* Back of card */}
                     <div className="flip-card-back">
-                      <Card className="h-full">
+                      <Card className="h-full bg-gray-50">
                         <CardContent className="flex h-full items-center justify-center p-6 rounded-lg">
                           <div className="text-center">
-                            <div className="text-lg font-semibold mb-2">Card {index + 1}</div>
-                            <div className="text-sm opacity-90">Back Side!</div>
-                            <div className="text-xs mt-2">🎉</div>
+                            <div className="text-md">{flashcard.back}</div>
                           </div>
                         </CardContent>
                       </Card>

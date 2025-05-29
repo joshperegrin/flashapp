@@ -12,13 +12,11 @@ import {
   SidebarMenuItem,
 } from "@renderer/components/ui/sidebar"
 import { useNavigate } from "react-router-dom" 
-import { Deck } from '@renderer/types'
+import * as DeckStore from '@renderer/state'
+import * as Jotai from 'jotai';
 
-type AppSidebarProp = {
-  decks: Deck[]
-}
-
-export function AppSidebar({ decks }: AppSidebarProp) {
+export function AppSidebar() {
+  const [decks, ] = Jotai.useAtom(DeckStore.decksAtom)
   const navigate = useNavigate()
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -52,10 +50,10 @@ export function AppSidebar({ decks }: AppSidebarProp) {
           <SidebarGroupContent>
             <SidebarMenu>
               {decks.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton onClick={() => navigate(item.url)}>
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton onClick={() => navigate("/deck/" + item.id)}>
                       <NotepadText />
-                      <span>{item.title}</span>
+                      <span>{item.name}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
