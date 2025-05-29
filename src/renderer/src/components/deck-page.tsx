@@ -8,10 +8,12 @@ import { Sparkles, CopyPlus } from "lucide-react";
 import { CardWithForm } from "@renderer/components/flashcards"
 import { SidebarTrigger } from "@renderer/components/ui/sidebar"
 import {Card, CardContent} from "@renderer/components/ui/card"
+import { NewCardsForm } from './new-flashcard-form';
 import * as Jotai from 'jotai'
 import * as DeckStore from '@renderer/state'
 
 function DeckPage() {
+  const [isEditing, setIsEditing] = Jotai.useAtom(DeckStore.isEditingAtom)
   const [, setSelectedDeckID] = Jotai.useAtom(DeckStore.selectedDeckIdAtom)
   const [selectedDeck, ] = Jotai.useAtom(DeckStore.selectedDeckAtom)
   let { deckid } = useParams()
@@ -59,7 +61,7 @@ function DeckPage() {
 
       {/* Carousel */}
       <div className="w-full flex justify-center mt-4 px-4 sm:px-6 lg:px-8">
-        <CarouselSpacing />
+        {selectedDeck?.flashcards.length !== 0 && <CarouselSpacing />}
       </div>
 
       {/* Filters and Search */}
@@ -78,12 +80,13 @@ function DeckPage() {
 
       {/* Cards */}
       <div className="flex flex-col gap-5 items-center mt-4 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow bg-accent items-center">
+        <Card className="w-full sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow bg-accent items-center" onClick={() => setIsEditing(true)}>
           <CardContent className="px-4 flex flex-row">
             <CopyPlus/>
             <span className="ml-2">New Card</span>
           </CardContent>
         </Card>
+        {isEditing && <NewCardsForm/>}
         {selectedDeck?.flashcards.map((value) => (
           <CardWithForm flashcard_id={value.id} key={value.id}/>
         ))}

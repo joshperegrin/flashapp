@@ -109,8 +109,8 @@ export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
   }, [isEditing])
 
   return (
-    <Card ref={cardRef} className="sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow">
-      <CardContent className="px-4">
+    <Card ref={cardRef} className="w-full sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow">
+      <CardContent className="p-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
           {/* Handlebar */}
           <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">

@@ -67,7 +67,7 @@ export const addFlashcardAtom = atom(null, (get, set, { deckId, front, back }) =
     deck.id === deckId
       ? {
           ...deck,
-          flashcards: [...deck.flashcards, createFlashcard(uuid(), front, back)],
+          flashcards: [createFlashcard(uuid(), front, back), ...deck.flashcards ],
         }
       : deck
   );
@@ -117,3 +117,6 @@ export const toggleStarredAtom = atom(null, (get, set, { deckId, flashcardId }) 
   });
   set(decksAtom, updatedDecks);
 });
+
+
+export const isEditingAtom = atom(false)
