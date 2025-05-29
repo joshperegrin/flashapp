@@ -20,6 +20,8 @@ export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
   const [editString2, setEditString2] = useState<string | undefined>(flashcard?.back)
   const [isStarred, setIsStarred] = useState(false)
   const [focusedField, setFocusedField] = useState<"Front" | "Back" | null>(null)
+  const [string1IsError, setString1IsError] = useState(false)
+  const [string2IsError, setString2IsError] = useState(false)
   const string1Ref = React.useRef<HTMLTextAreaElement>(null)
   const string2Ref = React.useRef<HTMLTextAreaElement>(null)
 
@@ -31,9 +33,23 @@ export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
   }
 
   const handleSave = () => {
+    let hasError = false;
+
+    if (editString1?.trim() === "") {
+      setString1IsError(true);
+      hasError = true;
+    }
+
+    if (editString2?.trim() === "") {
+      setString2IsError(true);
+      hasError = true;
+    }
+
+    if (hasError) return;
+
     setFlashcard({
-      front: editString1 ?? "",
-      back: editString2 ?? ""
+      front: editString1!.trim(),
+      back: editString2!.trim()
     });
     setIsEditing(false);
     setFocusedField(null);
@@ -108,17 +124,17 @@ export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
                 <Textarea
                   ref={string1Ref}
                   value={editString1}
-                  onChange={(e) => setEditString1(e.target.value)}
+                  onChange={(e) => {setEditString1(e.target.value); setString1IsError(false)}}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 resize-none overflow-hidden"
+                  className={`flex-1 resize-none overflow-hidden ${string1IsError ? "focus-visible:border-red-500 focus-visible:ring-red-500/50" : ""}`}
                   rows={1}
                 />
                 <Textarea
                   ref={string2Ref}
                   value={editString2}
-                  onChange={(e) => setEditString2(e.target.value)}
+                  onChange={(e) => {setEditString2(e.target.value); setString2IsError(false)}}
                   onKeyDown={handleKeyDown}
-                  className="flex-1 resize-none overflow-hidden"
+                  className={`flex-1 resize-none overflow-hidden ${string2IsError ? "focus-visible:border-red-500 focus-visible:ring-red-500/50" : ""}`}
                   rows={1}
                 />
               </div>
