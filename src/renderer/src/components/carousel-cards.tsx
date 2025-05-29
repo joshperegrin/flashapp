@@ -50,10 +50,10 @@ export function CarouselSpacing() {
         }
       `}</style>
       
-      <Carousel className="max-w-5xl w-full">
+      <Carousel className="w-full max-w-full sm:max-w-5xl">
         <CarouselContent className="-ml-1">
           {Array.from({ length: 5 }).map((_, index) => (
-            <CarouselItem onClick={() => {clickEvent(index)}} key={index} className={`pl-1 md:basis-1/2 lg:basis-1/3 ${clicked[index] ? 'flip-card-flipped' : ''}`}>
+            <CarouselItem onClick={() => {clickEvent(index)}} key={index} className={`pl-1 sm:basis-1/2 md:basis-1/2 lg:basis-1/3 ${clicked[index] ? 'flip-card-flipped' : ''}`}>
               <div className="p-1">
                 <div className="flip-card h-48">
                   <div className="flip-card-inner">
@@ -84,9 +84,9 @@ export function CarouselSpacing() {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
-      </Carousel>
+      <CarouselPrevious className="hidden sm:flex sm:absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10" />
+      <CarouselNext className="hidden sm:flex sm:absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10" />
+    </Carousel>
     </>
   )
 }

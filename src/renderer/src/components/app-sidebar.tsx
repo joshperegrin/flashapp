@@ -21,7 +21,7 @@ type AppSidebarProp = {
 export function AppSidebar({ decks }: AppSidebarProp) {
   const navigate = useNavigate()
   return (
-    <Sidebar collapsible="offcanvas" variant="inset">
+    <Sidebar collapsible="icon" variant="inset">
       <SidebarContent>
         <SidebarHeader>
           <SidebarMenu>
@@ -39,12 +39,14 @@ export function AppSidebar({ decks }: AppSidebarProp) {
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
-        <SidebarMenuButton
-          tooltip="New Deck"
-          className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground">
-          <PlusCircleIcon />
-          <span>New Deck</span>
-        </SidebarMenuButton>
+        <SidebarGroup>
+          <SidebarMenuButton
+            tooltip="New Deck"
+            className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground">
+            <PlusCircleIcon />
+            <span>New Deck</span>
+          </SidebarMenuButton>
+        </SidebarGroup>
         <SidebarGroup>
           <SidebarGroupLabel>My Decks</SidebarGroupLabel>
           <SidebarGroupContent>
