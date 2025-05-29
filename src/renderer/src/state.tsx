@@ -118,5 +118,26 @@ export const toggleStarredAtom = atom(null, (get, set, { deckId, flashcardId }) 
   set(decksAtom, updatedDecks);
 });
 
+// Writeable atom to delete multiple flashcards by IDs from a specific deck
+export const deleteFlashcardsAtom = atom(
+  null,
+  (get, set, { deckId, flashcardIds }: { deckId: string; flashcardIds: string[] }) => {
+    const decks = get(decksAtom);
+    const updatedDecks = decks.map((deck) => {
+      if (deck.id !== deckId) return deck;
+
+      return {
+        ...deck,
+        flashcards: deck.flashcards.filter(
+          (card) => !flashcardIds.includes(card.id)
+        ),
+      };
+    });
+
+    set(decksAtom, updatedDecks);
+  }
+);
+
+
 
 export const isEditingAtom = atom(false)

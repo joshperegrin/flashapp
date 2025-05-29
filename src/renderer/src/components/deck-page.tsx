@@ -4,19 +4,28 @@ import { CarouselSpacing } from "@renderer/components/carousel-cards"
 import DropdownFilterCards from "@renderer/components/dropdown-filter-cards"
 import { Button } from "@renderer/components/ui/button"
 import { Searchbox } from "@renderer/components/search-deck"
-import { Sparkles, CopyPlus } from "lucide-react";
+import { Zap, Sparkles, CopyPlus } from "lucide-react";
 import { CardWithForm } from "@renderer/components/flashcards"
 import { SidebarTrigger } from "@renderer/components/ui/sidebar"
 import {Card, CardContent} from "@renderer/components/ui/card"
 import { NewCardsForm } from './new-flashcard-form';
 import * as Jotai from 'jotai'
+import { useNavigate } from "react-router-dom" 
 import * as DeckStore from '@renderer/state'
+import { toast } from "sonner"
 
 function DeckPage() {
+  const navigate = useNavigate()
+  const cardContainerRef = React.useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = Jotai.useAtom(DeckStore.isEditingAtom)
   const [, setSelectedDeckID] = Jotai.useAtom(DeckStore.selectedDeckIdAtom)
   const [selectedDeck, ] = Jotai.useAtom(DeckStore.selectedDeckAtom)
   let { deckid } = useParams()
+
+  // New state for selected flashcard IDs
+  const [selectedFlashcardIds, setSelectedFlashcardIds] = React.useState<string[]>([])
+  const lastSelectedIndexRef = React.useRef(null) // To handle Shift + Click
+
   React.useEffect(() => {
     setSelectedDeckID(deckid)
   }, [deckid])
@@ -36,6 +45,7 @@ function DeckPage() {
       observer.observe(stickyRef.current)
     }
 
+
     return () => {
       if (stickyRef.current) {
         observer.unobserve(stickyRef.current)
@@ -43,6 +53,67 @@ function DeckPage() {
     }
   }, [])
 
+  // Function to handle flashcard selection
+  const handleFlashcardSelection = (flashcardId, index, event) => {
+    if (event.ctrlKey || event.metaKey) { // Ctrl or Cmd key
+      setSelectedFlashcardIds(prevSelected =>
+        prevSelected.includes(flashcardId)
+          ? prevSelected.filter(id => id !== flashcardId)
+          : [...prevSelected, flashcardId]
+      )
+      lastSelectedIndexRef.current = index
+    } else if (event.shiftKey) {
+      if (lastSelectedIndexRef.current !== null && selectedDeck?.flashcards) {
+        const startIndex = Math.min(lastSelectedIndexRef.current, index)
+        const endIndex = Math.max(lastSelectedIndexRef.current, index)
+        const flashcardsToSelect = selectedDeck.flashcards
+          .slice(startIndex, endIndex + 1)
+          .map(card => card.id)
+
+        // Merge new selection with existing selection, ensuring no duplicates
+        setSelectedFlashcardIds(prevSelected => {
+          const newSet = new Set([...prevSelected, ...flashcardsToSelect]);
+          return Array.from(newSet);
+        });
+      } else {
+        // If shift is pressed without a previous selection, treat as a single click
+        setSelectedFlashcardIds([flashcardId])
+      }
+      lastSelectedIndexRef.current = index
+    } //else {
+//      // Regular click - select only this card
+//      setSelectedFlashcardIds(prevSelected =>
+//        prevSelected.includes(flashcardId) && prevSelected.length === 1
+//          ? [] // Deselect if already selected and it's the only one
+//          : [flashcardId]
+//      )
+//      lastSelectedIndexRef.current = index
+//    }
+  }
+
+  // Arbitrary function that receives selected flashcard IDs
+  const processSelectedFlashcards = (ids) => {
+    console.log("Processing selected flashcard IDs:", ids)
+    // You can perform any action here, e.g., delete, export, move, etc.
+    alert(`Selected ${ids.length} flashcards: ${ids.join(', ')}`);
+  }
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        cardContainerRef.current &&
+        !cardContainerRef.current.contains(event.target as Node)
+      ) {
+        setSelectedFlashcardIds([]);
+        lastSelectedIndexRef.current = null;
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   return (
     <>
       {/* 👁 Invisible Sentinel Above Header */}
@@ -53,9 +124,18 @@ function DeckPage() {
         data-stuck={isStuck ? "true" : "false"}
         className="sticky top-0 z-30 w-full flex flex-col justify-center bg-white shadow-sm data-[stuck=false]:rounded-t-xl"
       >
-        <header className="h-12 flex items-center border-b pr-4 pl-2 sm:pr-6 lg:pr-8">
-          <SidebarTrigger />
-          <h1 className="text-base font-medium truncate">{selectedDeck?.name}</h1>
+        <header className="h-12 flex justify-between items-center border-b pr-2 pl-2">
+          <div className="flex flex-row">
+            <SidebarTrigger />
+            <h1 className="text-base font-medium truncate">{selectedDeck?.name}</h1>
+          </div>
+          <Button onClick={() => {
+            if(selectedDeck?.flashcards.length !== 0){
+              navigate(`/deck/${deckid}/review`)
+            } else {toast.error("Uhh Oh! It seems like you don't have any flashcards to study.")}}}>
+            <Zap/>
+            Review
+          </Button>
         </header>
       </div>
 
@@ -78,6 +158,16 @@ function DeckPage() {
         </div>
       </div>
 
+      {/* Display a button to trigger the arbitrary function if cards are selected */}
+      {selectedFlashcardIds.length > 0 && (
+        <div className="w-full flex justify-center mb-4">
+          <Button onClick={() => processSelectedFlashcards(selectedFlashcardIds)}>
+            Process {selectedFlashcardIds.length} Selected Cards
+          </Button>
+        </div>
+      )}
+
+
       {/* Cards */}
       <div className="flex flex-col gap-5 items-center mt-4 px-4 sm:px-6 lg:px-8">
         <Card className="w-full sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow bg-accent items-center" onClick={() => setIsEditing(true)}>
@@ -87,9 +177,16 @@ function DeckPage() {
           </CardContent>
         </Card>
         {isEditing && <NewCardsForm/>}
-        {selectedDeck?.flashcards.map((value) => (
-          <CardWithForm flashcard_id={value.id} key={value.id}/>
+        <div ref={cardContainerRef} className="flex flex-col gap-5 items-center mt-4 w-full sm:w-fit">
+        {selectedDeck?.flashcards.map((value, index) => (
+          <CardWithForm
+            flashcard_id={value.id}
+            key={value.id} // Use unique ID as key for better React performance
+            isSelected={selectedFlashcardIds?.includes(value.id)}
+            onSelect={(event) => handleFlashcardSelection(value.id, index, event)}
+          />
         ))}
+        </div>
       </div>
     </>
   )

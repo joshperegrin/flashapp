@@ -12,7 +12,7 @@ import {
 // Import Textarea instead of Input
 import { Textarea } from "@renderer/components/ui/textarea"
 
-export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
+export function CardWithForm({ flashcard_id, isSelected, onSelect }: { flashcard_id: string, isSelected?: boolean, onSelect: Function } ) {
   const cardRef = React.useRef<HTMLDivElement>(null)
   const [flashcard, setFlashcard] = Jotai.useAtom(DeckStore.getFlashcardAtomByID(flashcard_id))
   const [isEditing, setIsEditing] = useState(false)
@@ -109,7 +109,7 @@ export function CardWithForm({ flashcard_id }: { flashcard_id: string } ) {
   }, [isEditing])
 
   return (
-    <Card ref={cardRef} className="w-full sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow">
+    <Card ref={cardRef} className={`w-full sm:w-[650px] lg:w-[1000px] cursor-pointer hover:shadow-md transition-shadow ${isSelected ? 'border-2 border-blue-500 bg-blue-50': ''}`} onClick={onSelect}>
       <CardContent className="p-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
           {/* Handlebar */}
