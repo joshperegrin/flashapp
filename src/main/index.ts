@@ -1,7 +1,13 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import mammoth from 'mammoth';
+import PptxGenJS from 'pptxgenjs';
+import JSZip from 'jszip';
+import pdfParse from 'pdf-parse';
+import { dialog, app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import path from 'path';
+import fs from 'fs';
 
 function createWindow(): void {
   // Create the browser window.
@@ -72,3 +78,97 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+const MAX_FILE_SIZE_MB = 5; // max file size
+const ALLOWED_EXTENSIONS = ['.txt', '.md', '.doc', '.docx', '.rtf', '.pdf', '.ppt', '.pptx'];
+const MAX_PAGE_COUNT = 10; // for PDFs
+const MAX_CHAR_COUNT = 10000; // for txt/md files
+
+ipcMain.handle('dialog:selectFile', async () => {
+  const { canceled, filePaths } = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [
+      {
+        name: 'Supported Documents',
+        extensions: ['txt', 'md', 'doc', 'docx', 'rtf', 'pdf', 'ppt', 'pptx']
+      }
+    ]
+  });
+
+  if (canceled || filePaths.length === 0) return { error: 'No file selected' };
+
+  const filePath = filePaths[0];
+  const ext = path.extname(filePath).toLowerCase();
+
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    return { error: 'Unsupported file type' };
+  }
+
+  // File size check
+  const stats = fs.statSync(filePath);
+  const fileSizeMB = stats.size / (1024 * 1024);
+  if (fileSizeMB > MAX_FILE_SIZE_MB) {
+    return { error: `File too large (${fileSizeMB.toFixed(2)}MB). Max allowed is ${MAX_FILE_SIZE_MB}MB.` };
+  }
+
+  if (ext === '.pdf') {
+    try {
+      const dataBuffer = fs.readFileSync(filePath);
+      const pdfData = await pdfParse(dataBuffer);
+      if (pdfData.numpages > MAX_PAGE_COUNT) {
+        return { error: `PDF has too many pages (${pdfData.numpages}). Max allowed is ${MAX_PAGE_COUNT}.` };
+      }
+    } catch {
+      return { error: 'Failed to parse PDF file.' };
+    }
+  }
+
+  if (ext === '.txt' || ext === '.md') {
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      if (content.length > MAX_CHAR_COUNT) {
+        return { error: `File too long (${content.length} characters). Max allowed is ${MAX_CHAR_COUNT} characters.` };
+      }
+    } catch {
+      return { error: 'Failed to read text file.' };
+    }
+  }
+
+  if (ext === '.docx') {
+    try {
+      const dataBuffer = fs.readFileSync(filePath);
+      const { value: text } = await mammoth.extractRawText({ buffer: dataBuffer });
+      // Estimate pages: assume 1800 characters ~ 1 page (adjust as needed)
+      const estimatedPages = Math.ceil(text.length / 1800);
+      if (estimatedPages > MAX_PAGE_COUNT) {
+        return { error: `DOCX has too many pages (estimated ${estimatedPages}). Max allowed is ${MAX_PAGE_COUNT}.` };
+      }
+    } catch {
+      return { error: 'Failed to parse DOCX file.' };
+    }
+  }
+
+  if (ext === '.pptx') {
+    try {
+      const dataBuffer = fs.readFileSync(filePath);
+      const zip = await JSZip.loadAsync(dataBuffer);
+    
+      // pptx slides are stored in ppt/slides/ folder
+      const slidesFolder = 'ppt/slides/';
+      const slides = Object.keys(zip.files).filter(filename => filename.startsWith(slidesFolder) && filename.endsWith('.xml'));
+
+      const slideCount = slides.length;
+
+      if (slideCount > MAX_PAGE_COUNT) {
+        return { error: `PPTX has too many slides (${slideCount}). Max allowed is ${MAX_PAGE_COUNT}.` };
+      }
+    } catch (err) {
+      console.error(err);
+      return { error: 'Failed to parse PPTX file.' };
+    }
+  }
+  // For other extensions (.doc, .rtf, .ppt), skipping page count due to complexity
+
+  return { filePath };
+});
+

@@ -13,8 +13,22 @@ import * as Jotai from 'jotai'
 import { useNavigate } from "react-router-dom" 
 import * as DeckStore from '@renderer/state'
 import { toast } from "sonner"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@renderer/components/ui/dialog"
+import { Textarea } from './ui/textarea';
+import { DialogDescription } from '@radix-ui/react-dialog';
+import { Switch } from "@renderer/components/ui/switch";
+import { Label } from "@renderer/components/ui/label";
 
 function DeckPage() {
+  const [parseLOT, setParseLOT] = React.useState(false)
   const navigate = useNavigate()
   const cardContainerRef = React.useRef<HTMLDivElement>(null);
   const [isEditing, setIsEditing] = Jotai.useAtom(DeckStore.isEditingAtom)
@@ -147,10 +161,39 @@ function DeckPage() {
       {/* Filters and Search */}
       <div className="w-full flex justify-center mb-4">
         <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mt-4 px-4 w-full sm:w-[680px] lg:w-[1050px]">
-          <Button size="sm" className="flex items-center gap-1">
-            <Sparkles className="size-4" />
-            <span>Generate Cards</span>
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" className="flex items-center gap-1" onClick={async ()=>{}}>
+                <Sparkles className="size-4" />
+                  <span>Generate Cards</span>
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Generate Flashcards</DialogTitle>
+                <DialogDescription>Please paste your text below</DialogDescription>
+              </DialogHeader>
+
+                  <Textarea className='resize-none h-50'/>
+                  <div className='flex flex-row gap-2 my-3'>
+                  <Switch checked={parseLOT} onCheckedChange={setParseLOT}/>
+                  <Label> Parse as list of terms </Label>
+                  </div>
+                <DialogFooter className="sm:justify-between">
+                  <Button> Open file</Button>
+                  <div className='flex flex-row gap-2'>
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Close
+                    </Button>
+                  </DialogClose>
+                  <Button type="button">
+                    Submit
+                  </Button>
+                  </div>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           <div className="flex flex-col sm:flex-row gap-2">
             <Searchbox />
             <DropdownFilterCards />

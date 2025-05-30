@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom"
 import CustomQueue from "@renderer/lib/queue"
 
 export function FlashcardsReview() {
+  const initialized = useRef(false)
   const navigate = useNavigate()
   let { deckid } = useParams()
   const queueref = useRef(new CustomQueue<DeckStore.Flashcard>)
@@ -92,9 +93,12 @@ export function FlashcardsReview() {
 
 
   React.useEffect(()=>{
-    deck?.flashcards.forEach((value) => {queueref.current.enqueue(value)})
-    setCurrentFC(queueref.current.peek())
-    setReviewLength(queueref.current.size())
+    if(!initialized.current){
+      deck?.flashcards.forEach((value) => {queueref.current.enqueue(value)})
+      setCurrentFC(queueref.current.peek())
+      setReviewLength(queueref.current.size())
+    }
+    initialized.current = true
   }, [])
 
   return (
