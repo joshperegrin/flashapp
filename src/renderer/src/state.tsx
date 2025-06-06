@@ -1,7 +1,9 @@
 // state/atoms.ts
-import { atom } from 'jotai';
+import { atom, createStore } from 'jotai';
 import { atomFamily } from 'jotai/utils'
 import { v4 as uuid } from 'uuid';
+
+
 
 // Types
 export interface Flashcard {
@@ -141,3 +143,61 @@ export const deleteFlashcardsAtom = atom(
 
 
 export const isEditingAtom = atom(false)
+
+export const myStore = createStore();
+
+export const errorMessageToastAtom = atom("")
+
+export async function generateCards(method: "terms" | "file" | "stringText", stringstuff: string, model: string): Promise<string | undefined>{
+  let response: Deck | string = "stuff";
+  myStore.set(errorMessageToastAtom, "Flashcard Generation is pending")
+  switch(method){
+    case "terms" :
+      response = await window.api.generateCards({
+        method: 'terms',
+        terms: stringstuff,
+        model,
+      })
+      break;
+    case "file" :
+      const filePath: string = await window.api.selectFile();
+      if (!filePath) {
+        myStore.set(errorMessageToastAtom, "File selection cancelled");
+        return undefined;
+      }
+      response = await window.api.generateCards({
+        method: 'file',
+        filePath,
+        model,
+      })
+      break;
+    case "stringText":
+      console.log("Generate Cards:",  window.api.generateCards)
+      response = await window.api.generateCards({
+        method: 'text',
+        stringText: stringstuff,
+        model,
+      })
+      console.log("Successfully Run:",  window.api.generateCards)
+      console.log("Response:", response)
+      break;
+    default:
+      myStore.set(errorMessageToastAtom, `Error Message: Invalid method`)
+      break;
+  }
+
+  const currentDecks = myStore.get(decksAtom)
+  if (typeof response !== 'string') {
+    const decks_stuff = [...currentDecks, response]
+    myStore.set(decksAtom, decks_stuff);
+    myStore.set(errorMessageToastAtom, `Added ${response.name} deck successfully!`)
+    myStore.set(selectedDeckIdAtom, response.id)
+    return response.id
+  } else {
+    console.error("Error generating deck:", response);
+    myStore.set(errorMessageToastAtom, `Error Message: ${response}`)
+    return undefined
+  }  
+  
+}
+

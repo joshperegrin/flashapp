@@ -13,6 +13,7 @@ import * as DeckStore from '@renderer/state'
 export function CarouselSpacing() {
   const [clicked, setClicked] = useState<boolean[]>([false, false, false, false, false])
   const [deck, ] = Jotai.useAtom(DeckStore.selectedDeckAtom)
+
   const clickEvent = (index: number) => {
     setClicked((prev) =>
       prev.map((val, i) => (i === index ? !val : val))

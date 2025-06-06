@@ -49,8 +49,8 @@ export function AppSidebar() {
           <SidebarGroupLabel>My Decks</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {decks.map((item) => (
-                <SidebarMenuItem key={item.id}>
+              {decks.map((item, index) => (
+                <SidebarMenuItem key={index}>
                   <SidebarMenuButton onClick={() => navigate("/deck/" + item.id)}>
                       <NotepadText />
                       <span>{item.name}</span>

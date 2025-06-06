@@ -15,6 +15,7 @@ import { Textarea } from "@renderer/components/ui/textarea"
 export function CardWithForm({ flashcard_id, isSelected, onSelect }: { flashcard_id: string, isSelected?: boolean, onSelect: Function } ) {
   const cardRef = React.useRef<HTMLDivElement>(null)
   const [flashcard, setFlashcard] = Jotai.useAtom(DeckStore.getFlashcardAtomByID(flashcard_id))
+  console.log(flashcard?.id, ",  ", flashcard?.front, flashcard_id, " hello ")
   const [isEditing, setIsEditing] = useState(false)
   const [editString1, setEditString1] = useState<string | undefined>(flashcard?.front)
   const [editString2, setEditString2] = useState<string | undefined>(flashcard?.back)

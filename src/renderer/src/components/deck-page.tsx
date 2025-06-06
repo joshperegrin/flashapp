@@ -28,6 +28,8 @@ import { Switch } from "@renderer/components/ui/switch";
 import { Label } from "@renderer/components/ui/label";
 
 function DeckPage() {
+  const [promptText, setPromptText] = React.useState("")
+  const [open, setOpen] = React.useState(false);
   const [parseLOT, setParseLOT] = React.useState(false)
   const navigate = useNavigate()
   const cardContainerRef = React.useRef<HTMLDivElement>(null);
@@ -161,7 +163,7 @@ function DeckPage() {
       {/* Filters and Search */}
       <div className="w-full flex justify-center mb-4">
         <div className="flex flex-col sm:flex-row sm:justify-between gap-2 mt-4 px-4 w-full sm:w-[680px] lg:w-[1050px]">
-          <Dialog>
+          <Dialog open={open} onOpenChange={(e) => {setOpen(e)}}>
             <DialogTrigger asChild>
               <Button size="sm" className="flex items-center gap-1" onClick={async ()=>{}}>
                 <Sparkles className="size-4" />
@@ -173,21 +175,36 @@ function DeckPage() {
                 <DialogTitle>Generate Flashcards</DialogTitle>
                 <DialogDescription>Please paste your text below</DialogDescription>
               </DialogHeader>
-
-                  <Textarea className='resize-none h-50'/>
+                  <Textarea
+                    value={promptText}
+                    onChange={(e) => {setPromptText(e.target.value)}}
+                    className='resize-none h-50'/>
                   <div className='flex flex-row gap-2 my-3'>
                   <Switch checked={parseLOT} onCheckedChange={setParseLOT}/>
                   <Label> Parse as list of terms </Label>
                   </div>
                 <DialogFooter className="sm:justify-between">
-                  <Button> Open file</Button>
+                  <Button onClick={async ()=>{
+                    setOpen(false)
+                    const deckID = await DeckStore.generateCards("file", promptText, "gemma3:4b-it-qat")
+                    if(typeof deckID !== 'undefined') {
+                      navigate(`/deck/${deckID}`)
+                    }
+                  }}> Open file</Button>
                   <div className='flex flex-row gap-2'>
                   <DialogClose asChild>
                     <Button type="button" variant="secondary">
                       Close
                     </Button>
                   </DialogClose>
-                  <Button type="button">
+                  <Button type="button" onClick={async ()=>{
+                    console.log("HELLO")
+                    setOpen(false)
+                    const deckID = await DeckStore.generateCards(parseLOT? "terms":"stringText", promptText, "gemma3:4b-it-qat")
+                    if(typeof deckID !== 'undefined') {
+                      navigate(`/deck/${deckID}`)
+                    }
+                  }}>
                     Submit
                   </Button>
                   </div>
@@ -224,7 +241,7 @@ function DeckPage() {
         {selectedDeck?.flashcards.map((value, index) => (
           <CardWithForm
             flashcard_id={value.id}
-            key={value.id} // Use unique ID as key for better React performance
+            key={index} // Use unique ID as key for better React performance
             isSelected={selectedFlashcardIds?.includes(value.id)}
             onSelect={(event) => handleFlashcardSelection(value.id, index, event)}
           />
